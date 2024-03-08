@@ -1,6 +1,7 @@
 'use strict'
 
 import Product from './product.model.js'
+import Category from '../category/category.model.js'
 
 export const test = (req, res) => {
     console.log('test is running')
@@ -17,6 +18,9 @@ export const saveProduct = async(req, res) =>{
         let product = new Product(data)
         // Guardar por defecto el AVAILABLE
         product.state = 'AVAILABLE'
+        //Verificar que existe la categoría
+        let category = await Category.findOne({_id: data.category})
+        if(!category) return res.status(404).send({message: 'Category not found or not exist'})
         await product.save()
         //Responder al usuario
         return res.send({message: `Producto saved succesfully: ${product.name}`})
@@ -104,10 +108,11 @@ export const deleteProduct = async(req, res) => {
 export const searchProduct = async(req, res) => {
     try{
         // Obtener el dato de busqueda 
-        let { name } = req.body 
+        let { name } = req.body
+        const regex = new RegExp(name, 'i') 
         // Buscar 
         let product = await Product.find(
-            {name: name}
+            {name: regex}
         ).populate('category', 'name')
         // Responder si todo sale bien 
         return res.send({message: 'Product found:', product})
