@@ -40,6 +40,14 @@ export const editProduct  = async(req, res) => {
         if(!product) return res.status(404).send({message: 'Product not exists'})
         // Obtener los datos que voy a actualizar 
         let data = req.body
+        // Validar que el stock no sea menor a cero
+        if(data.stock < 0) return res.status(500).send({message: 'Stock cannot less than 0'})
+            //Actualizar estado 
+            if(data.stock != 0){
+                data.state = 'AVAILABLE' 
+            }else{
+                data.state = 'SOLD OUT'
+            }
         // Actualizar 
         let updateProduct = await Product.findOneAndUpdate(
             {_id: id},
@@ -54,39 +62,6 @@ export const editProduct  = async(req, res) => {
     }
 }
 
-// Editar el stock
-export const updateStock  = async(req, res) => {
-    try{
-        // Obtener id 
-        let { id } = req.params
-        // Identificar que existe
-        let product = await Product.findOne({_id: id})
-        if(!product) return res.status(404).send({message: 'Product not exists'})
-        // Obtener los datos que voy a actualizar 
-        let data  = req.body
-        // Validar que el stock no sea menor a cero
-        if(data.stock < 0) return res.status(500).send({message: 'Stock cannot less than 0'})
-        //Actualizar estado 
-        if(data.stock != 0){
-            data.state = 'AVAILABLE' 
-        }else{
-            data.state = 'SOLD OUT'
-        }
-        //Actualizar el stock 
-        data.stock = product.stock + parseInt(data.stock)
-        // Actualizar 
-        let updateProduct = await Product.findOneAndUpdate(
-            {_id: id},
-            data, 
-            {new:true}
-        )
-        // Responder al usuario
-        return res.send({message: 'Updated product', updateProduct})
-    }catch(err){
-        console.error(err)
-        return res.status(500).send({message: 'Error editing product'})
-    }
-}
 
 // Eliminar un producto 
 export const deleteProduct = async(req, res) => {
